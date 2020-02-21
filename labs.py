@@ -132,10 +132,13 @@ for server_id in range(1, num_servers+1):
     data = {'listen':"0.0.0.0:" + str(BASE_SERVER_PORT + (server_id-1)), 'upstream': server_name + ":80", 'name': server_name}
     ret = requests.post('http://0.0.0.0:' + str(PROXY_PORT) + '/proxies', data=json.dumps(data).encode("utf-8"))
 
+print("CTRL-C to shutdown...")
 try:
     while True:
         time.sleep(1)
 except KeyboardInterrupt:
     pass
 
+print("Shutting down...")
 remove()
+print("Finished")
