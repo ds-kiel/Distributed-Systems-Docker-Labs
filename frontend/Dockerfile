@@ -1,10 +1,10 @@
-FROM python:alpine
+FROM python:3.6-alpine
 
-RUN pip install bottle requests
+RUN pip install bottle requests paste
 
 COPY src /application/src
 COPY frontend.py /application
 
 WORKDIR /application
 
-CMD ["python", "./frontend.py", "$NUM_SERVERS", "$FROM_PORT", "$TO_PORT"]
+CMD ["python", "./frontend.py"]

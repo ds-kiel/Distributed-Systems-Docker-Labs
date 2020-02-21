@@ -1,8 +1,8 @@
-FROM python:alpine
+FROM python:3.6-alpine
 WORKDIR /application
 
-RUN pip install bottle requests dnspython
+RUN pip install bottle requests
 
 COPY ./*.py /application/
 
-#CMD export HOST=${hostname -i} && python run.py
+CMD ["python", "./server.py"]

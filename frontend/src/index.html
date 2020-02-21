@@ -54,9 +54,9 @@
   <div class="row mb-4">
     <div class="col">
       <div class="input-group">
-        <select class="custom-select" v-model="server" @change="changeServer">
-            <option v-for="id in servers" v-bind:value="id">
-              Server {{ id }}
+        <select class="custom-select" v-model="serverId" @change="changeServer">
+            <option v-for="(item, index) in servers" v-bind:value="index+1">
+              Server {{ index+1 }}
             </option>
           </select>
         <div class="input-group-append">
@@ -91,7 +91,9 @@
 
 <script type="text/javascript">
   console.debug("ASd");
-  initFrontend(%NUM_SERVERS%, %FROM_PORT%, %SERVER_ID%);
+
+  var servers = "%SERVER_LIST%".split(',');
+  initFrontend(servers, %SERVER_ID%);
 </script>
 
 </body>

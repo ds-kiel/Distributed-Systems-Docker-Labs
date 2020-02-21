@@ -1,17 +1,10 @@
 
-var initFrontend = function(numServers, fromPort, currentServer) {
-
-    var servers = [];
-    var i;
-    for (i = 1; i <= numServers; i++) {
-        servers.push(i);
-    }
-
+var initFrontend = function(serverList, currentServer) {
     window.app = new Vue({
         el: '#app',
         data: {
-          server: currentServer,
-          servers: servers,
+          serverId: currentServer,
+          serverList: servers,
           loading: true,
           entries: [],
           entryRequest: null
@@ -21,20 +14,27 @@ var initFrontend = function(numServers, fromPort, currentServer) {
         },
         methods: {
             changeServer: function() {
-                console.debug("Changed server to " + this.server);
+                console.debug("Changed server to " + this.serverId);
                 this.reloadBoard();
+            },
+
+            setBoardEntries: function(entries) {
+                this.loading = false;
+                this.entries = entries;
             },
             reloadBoard: function() {
                 if (this.entryRequest != null) {
-                    clearTimeout(this.entryRequest);
-                    timer = setTimeout(()=>{ this.show = false; }, 3000);
+                    this.entryRequest.abort();
                 }
 
+                console.debug("Reloading board for " + this.serverId);
+                
                 this.loading = true;
+                var vm = this;
                 
-                this.entryRequest = setTimeout(() => { this.loading = false;
-                    this.entries.push("Test13"); }, 500);
-                
+                this.entryRequest = $.getJSON( 'http://' + vm.serverList[vm.serverId-1] + '/entries', function( data ) {
+                    vm.setBoardEntries(data.entries);
+                });
             }
         }
     });

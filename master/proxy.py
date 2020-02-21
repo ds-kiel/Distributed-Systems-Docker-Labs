@@ -1,17 +1,9 @@
-from toxiproxy.api import validate_response
-import requests
-import os
+
 from toxiproxy import Toxiproxy
-
-num_servers = int(os.getenv('NUM_SERVERS'))
-from_port = int(os.getenv('FROM_PORT'))
-to_port = os.getenv('TO_PORT')
-
 
 
 tp = Toxiproxy()
-tp.update_api_consumer('proxy', '8474')
-
+tp.update_api_consumer('localhost', '8474')
 
 proxies = dict()
 
