@@ -34,6 +34,7 @@ def contact_another_server(srv_ip, URI, req='POST', data=None):
             success = True
     except Exception as e:
         print("[ERROR] "+str(e))
+        res = None
     return (success, res)
 
 

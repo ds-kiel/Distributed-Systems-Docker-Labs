@@ -83,7 +83,7 @@ class BlackboardServer(Bottle):
             #util.propagate_to_all_servers(self.server_list, self.ip, '/dummy_propagation', 'POST', json.dumps(entry.to_dict()))
             #print("Propagated: {}".format(entry))
             # Or a delayed version:
-            #util.do_parallel_task(util.propagate_to_all_servers, args=(self.server_list, self.ip, '/dummy_propagation', 'POST', json.dumps(entry.to_dict())), delay=10)
+            util.do_parallel_task(util.propagate_to_all_servers, args=(self.server_list, self.ip, '/dummy_propagation', 'POST', json.dumps(entry.to_dict())), delay=10)
         except Exception as e:
             print("[ERROR] "+str(e))
             raise e
@@ -96,7 +96,6 @@ class BlackboardServer(Bottle):
         except Exception as e:
             print("[ERROR] "+str(e))
             raise e
-
 
     def update_entry_request(self, entry_id):
         return HTTPError(500, "Method not implemented!")
@@ -113,4 +112,4 @@ own_ip = server_list[own_id-1]
 server = BlackboardServer(own_id, own_ip, server_list)
 
 print("#### Starting BlackboardServer " + str(own_id))
-run(server, host='0.0.0.0', port=80, debug=True)
+run(server, host='0.0.0.0', port=80, debug=True, server='paste')
