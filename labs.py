@@ -101,7 +101,8 @@ frontend_container = client.containers.run(FRONTEND_IMAGE,
                             hostname='frontend',
                             ports={'80': FRONTEND_PORT},
                             environment = {
-                                "SERVER_LIST": external_server_list
+                                "SERVER_LIST": external_server_list,
+                                "GROUP_NAME": GROUP_NAME
                             }
                         )
 attach_logs(frontend_container)
@@ -115,8 +116,7 @@ for server_id in range(1, num_servers+1):
                                         detach=True,
                                         labels={DOCKER_LABEL: 'server'},
                                         name=DOCKER_LABEL+ '_' + server_name,
-                                        hostname=server_name,
-                                        environment = {
+                                        hostname=server_name,                                        environment = {
                                             "SERVER_LIST": internal_server_list,
                                             "SERVER_ID": server_id
                                         }

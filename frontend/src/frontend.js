@@ -6,8 +6,10 @@ var initFrontend = function(serverList, currentServer) {
           serverId: currentServer,
           serverList: servers,
           loading: true,
+          creating: false,
           entries: [],
-          entryRequest: null
+          entryRequest: null,
+          entryText: ''
         },
         created: function() {
             this.changeServer(currentServer);
@@ -26,7 +28,6 @@ var initFrontend = function(serverList, currentServer) {
                 if (this.entryRequest != null) {
                     this.entryRequest.abort();
                 }
-
                 console.debug("Reloading board for " + this.serverId);
                 
                 this.loading = true;
@@ -34,6 +35,32 @@ var initFrontend = function(serverList, currentServer) {
                 
                 this.entryRequest = $.getJSON( 'http://' + vm.serverList[vm.serverId-1] + '/entries', function( data ) {
                     vm.setBoardEntries(data.entries);
+                }).fail(function( jqxhr, textStatus, error ) {
+                    if (error != "abort") {
+                        setTimeout(function(){
+                            vm.reloadBoard();
+                        }, 1000)
+                    }
+                });
+            }, 
+            createEntry: function() {
+
+                if (this.creating) {
+                    return; // wait for the previous request
+                }
+
+                console.debug("Adding entry for " + this.serverId);
+                
+                this.creating = true;
+                var vm = this;
+
+                this.entryRequest = $.post( 'http://' + vm.serverList[vm.serverId-1] + '/entries',
+                {
+                    text: vm.entryText
+                },
+                function( data ) {
+                    vm.creating = false;
+                    vm.reloadBoard();
                 });
             }
         }
