@@ -1,4 +1,4 @@
-FROM python:3.6-alpine
+FROM python:3.9-alpine
 
 RUN pip install bottle requests paste
 
@@ -7,4 +7,4 @@ COPY frontend.py /application
 
 WORKDIR /application
 
-CMD ["python", "./frontend.py"]
+CMD ["python", "-u", "./frontend.py"]

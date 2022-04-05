@@ -1,8 +1,8 @@
-FROM python:3.6-alpine
+FROM python:3.9-alpine
 WORKDIR /application
 
-RUN pip install bottle requests
+RUN pip install bottle requests paste
 
 COPY ./*.py /application/
 
-CMD ["python", "./server.py"]
+CMD ["python", "-u", "./server.py"]
