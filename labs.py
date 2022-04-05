@@ -25,17 +25,13 @@ PROXY_IMAGE = 'shopify/toxiproxy'
 
 client = docker.from_env()
 
-
 def attach_logs(container):
     def _print(name, stream):
         for line in stream:
-            print(name +": " + str(line))
+            print(name +": " + line.decode('utf8').strip())
     t = threading.Thread(target=_print, args=(container.name, container.attach(logs=True,stream=True)))
     t.daemon = True
     t.start()
-
-
-
 
 
 # Remove any running container instances
@@ -57,8 +53,6 @@ def remove():
     except Exception as e:
         print(e)
         pass
-
-
 
 remove()
 
@@ -85,14 +79,15 @@ proxy_container = client.containers.run(PROXY_IMAGE,
                                         labels={DOCKER_LABEL: 'proxy'},
                                         name=DOCKER_LABEL+'_proxy',
                                         hostname='proxy',
-                                        ports=proxy_ports
-                                        )
+                                        ports=proxy_ports,
+                                        environment = {
+                                            "LOG_LEVEL": "error"
+                                        }
+                                    )
 attach_logs(proxy_container)
 
-    
 
 network.connect(proxy_container, aliases=['proxy'])
-
 
 frontend_container = client.containers.run(FRONTEND_IMAGE,
                             detach=True,
@@ -109,14 +104,14 @@ attach_logs(frontend_container)
 
 server_containers = []
 
-
 for server_id in range(1, num_servers+1):
     server_name = "server_{}".format(server_id)
     server_container = client.containers.run(SERVER_IMAGE,
                                         detach=True,
                                         labels={DOCKER_LABEL: 'server'},
                                         name=DOCKER_LABEL+ '_' + server_name,
-                                        hostname=server_name,                                        environment = {
+                                        hostname=server_name,
+                                        environment = {
                                             "SERVER_LIST": internal_server_list,
                                             "SERVER_ID": server_id
                                         }
@@ -126,18 +121,33 @@ for server_id in range(1, num_servers+1):
     network.connect(server_container, aliases=[server_name])
 
 
-
 for server_id in range(1, num_servers+1):
     server_name = "server_{}".format(server_id)
     data = {'listen':"0.0.0.0:" + str(BASE_SERVER_PORT + (server_id-1)), 'upstream': server_name + ":80", 'name': server_name}
     ret = requests.post('http://0.0.0.0:' + str(PROXY_PORT) + '/proxies', data=json.dumps(data).encode("utf-8"))
 
 print("CTRL-C to shutdown...")
+
+
+# Some scenarios TODO
+
+def scenario_clear():
+    pass
+
+def scenario_half_split():
+    pass
+
+def scenario_request_loss(p=0.1):
+    pass
+
 try:
+    # TODO: We could execute specific scenarios if wanted, e.g. post some entries to the servers, change the network topology using toxiproxy etc.
     while True:
         time.sleep(1)
+
 except KeyboardInterrupt:
     pass
+
 
 print("Shutting down...")
 remove()

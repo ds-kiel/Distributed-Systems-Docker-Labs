@@ -2,6 +2,8 @@
 from bottle import Bottle, request, HTTPError, run, response
 import util
 import os
+import time
+import json
 
 # A simple entry in our blackboard
 class Entry:
@@ -12,6 +14,9 @@ class Entry:
         return {
             "text": self.text
         }
+    
+    def from_dict(data):
+        return Entry(data['text'])
 
     def __str__(self):
         return str(self.to_dict())
@@ -40,21 +45,18 @@ class BlackboardServer(Bottle):
         self.ip = str(IP)
         self.server_list = server_list
 
-        # Define REST URIs for the frontend
-        self.get('/entries', callback=self.list_entries_request)
-        self.post('/entries', callback=self.create_entry_request)
-        self.delete('/entries', callback=self.delete_entry_request)
-        self.route('/entries/<entry_id:int>', method='PATCH', callback=self.update_entry_request)
-
         # Handle CORS
         self.route('/<:re:.*>', method='OPTIONS', callback=self.add_cors_headers)
         self.add_hook('after_request', self.add_cors_headers)
+
+        # Define REST URIs for the frontend
+        self.get('/entries', callback=self.list_entries_request)
+        self.post('/entries', callback=self.create_entry_request)
+        self.delete('/entries', callback=self.delete_entry_request)  
         
         # if you add new URIs to the server, you need to add them here
         # You can have variables in the URI, here's an example
-        # self.post('/propagate/<entry_id:int>/', callback=self.propagate_entry) where post_board takes an argument (integer) called entry_id
-
-        self.blackboard.add_entry(Entry(str(self.id)))
+        self.post('/dummy_propagation', callback=self.dummy_propagation)
 
     def add_cors_headers(self):
         """
@@ -77,11 +79,24 @@ class BlackboardServer(Bottle):
             entry = Entry(entry_text)
             self.blackboard.add_entry(entry)
             print("Received: {}".format(entry))
-            util.propagate_to_all_servers(self.server_list, self.ip, '/entries', 'POST', {"text": entry_text})
-            print("Propagated: {}".format(entry))
+            # You could now propagate that to all servers, like this:
+            #util.propagate_to_all_servers(self.server_list, self.ip, '/dummy_propagation', 'POST', json.dumps(entry.to_dict()))
+            #print("Propagated: {}".format(entry))
+            # Or a delayed version:
+            #util.do_parallel_task(util.propagate_to_all_servers, args=(self.server_list, self.ip, '/dummy_propagation', 'POST', json.dumps(entry.to_dict())), delay=10)
         except Exception as e:
             print("[ERROR] "+str(e))
             raise e
+
+    def dummy_propagation(self):
+        try:
+            entry = Entry.from_dict(request.json)
+            print("Received: {}".format(entry))
+            self.blackboard.add_entry(entry)
+        except Exception as e:
+            print("[ERROR] "+str(e))
+            raise e
+
 
     def update_entry_request(self, entry_id):
         return HTTPError(500, "Method not implemented!")
@@ -89,9 +104,13 @@ class BlackboardServer(Bottle):
     def delete_entry_request(self, entry_id):
         return HTTPError(500, "Method not implemented!")
 
+# Sleep a bit to allow logging to be attached
+time.sleep(2)
+
 server_list = os.getenv('SERVER_LIST').split(',')
 own_id = int(os.getenv('SERVER_ID'))
 own_ip = server_list[own_id-1]
 server = BlackboardServer(own_id, own_ip, server_list)
-print("Starting BlackboardServer " + str(own_id))
+
+print("#### Starting BlackboardServer " + str(own_id))
 run(server, host='0.0.0.0', port=80, debug=True)
