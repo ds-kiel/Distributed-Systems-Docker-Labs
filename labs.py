@@ -348,7 +348,7 @@ def test_scenario(name, timeout_s=20, check_list = []):
         # TODO: Check orderings between the different servers
     return check_list
 
-TEST = True
+TEST = False
 
 print("CTRL-C to shutdown...")
 try:
